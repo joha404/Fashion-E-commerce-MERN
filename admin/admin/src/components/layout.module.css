@@ -1,0 +1,24 @@
+.nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: auto;
+  left: 100px;
+}
+.sidenav {
+  width: 320px;
+  height: auto;
+  position: fixed;
+  right: 0;
+}
+.main {
+  height: auto;
+  width: 100%;
+  background-color: #fff;
+
+  padding: 20px;
+}
+.content {
+  margin-top: 50px;
+  margin-left: 250px;
+}

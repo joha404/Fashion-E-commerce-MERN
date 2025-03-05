@@ -1,0 +1,40 @@
+/* Remove background, border, and icon from the Bootstrap dropdown */
+.dropdown-toggle {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: gray !important;
+  margin-top: -5px;
+}
+
+/* Remove default Bootstrap caret (icon) */
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* Remove any unwanted padding or styles from the dropdown menu */
+.dropdown-menu {
+  border: none !important;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  z-index: 999;
+}
+
+.dropdown-item {
+  color: #050505 !important;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+a {
+  text-decoration: none !important;
+}
+.secondary-nav a {
+  color: black !important;
+}
+[class^="icon-"],
+[class*=" icon-"] {
+  color: black;
+}

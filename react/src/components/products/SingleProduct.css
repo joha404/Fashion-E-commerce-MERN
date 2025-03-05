@@ -1,0 +1,162 @@
+/* Wrapper for the product image */
+.product-img-wrapper {
+  position: relative;
+  padding: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Default Product Image */
+.product-img {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Magnifier Effect */
+.product-img-magnifier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 400px;
+  overflow: hidden;
+  display: none;
+  border: 3px solid #b9b5b5;
+  pointer-events: none;
+}
+
+.product-img-magnifier img {
+  position: absolute;
+  width: 300%; /* 6x Zoom */
+  height: 300%;
+  object-fit: cover;
+}
+
+/* product details  */
+.product-details {
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-details h1 {
+  font-size: 1.75rem;
+  color: #333;
+}
+
+.price-tag {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #ff5722;
+}
+
+.wishlist button {
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+}
+
+.wishlist button:hover {
+  background-color: #ff5722;
+  color: #fff;
+  border-color: #ff5722;
+}
+
+.add-to-cart {
+  padding: 14px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 30px;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-cart:hover {
+  background-color: #ff5722;
+  color: #fff;
+  border-color: #ff5722;
+}
+
+.btn-outline-danger {
+  border-radius: 30px;
+}
+
+.btn-outline-danger:hover {
+  background-color: #ff5722;
+  color: white;
+  border-color: #ff5722;
+}
+/* quantity section */
+
+.quantity-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quantity-input label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+}
+
+.quantity-btn {
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-size: 1rem; /* Increase font size for the icons */
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.quantity-btn:hover {
+  background-color: #ff5722;
+  color: white;
+  border-color: #ff5722;
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-input-field {
+  width: 60px;
+  padding: 5px;
+  font-size: 1.2rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.quantity-input-field:focus {
+  outline: none;
+  border-color: #ff5722;
+}
+
+.quantity-input-field::-webkit-outer-spin-button,
+.quantity-input-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input-field[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -1,0 +1,89 @@
+/* Navbar when fixed */
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  transition: box-shadow 0.3s ease-out, transform 0.3s ease-out;
+}
+.mainNavbar {
+  background-color: #fff;
+  border-bottom: 2px solid #c3c3c3; /* Green border */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile menu styles */
+.mobile-menu {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: #000000;
+  padding: 10px;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.4s ease-in-out;
+  opacity: 10;
+  z-index: 99;
+  /* Initially hidden */
+}
+
+/* When the menu is open */
+.mobile-menu.open {
+  transform: translateX(50%); /* Slide into view */
+}
+
+/* Ensure menu items are centered and properly spaced */
+.mobile-menu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+
+.mobile-menu ul li {
+  margin: 15px 0;
+}
+
+.mobile-menu ul li a {
+  color: white;
+  font-size: 20px;
+  text-decoration: none;
+  display: block;
+  transition: color 0.3s ease;
+}
+
+.mobile-menu ul li a:hover {
+  color: #ffcc00;
+}
+
+/* Mobile Menu Button (Hamburger Icon) */
+.menu-btn {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 28px;
+  position: fixed;
+  left: 35%;
+  z-index: 9;
+}
+.menu-btn:hover {
+  background: none;
+  color: #000000;
+  font-weight: bold;
+}
+
+/* Ensure mobile navigation works correctly */
+@media screen and (max-width: 768px) {
+  .mobile-menu {
+    display: flex;
+  }
+}

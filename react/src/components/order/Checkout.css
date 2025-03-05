@@ -1,0 +1,270 @@
+/* Checkout Page Styles */
+.checkout-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  font-family: "Poppins", sans-serif;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Flex container for layout */
+.checkout-row {
+  display: flex;
+  gap: 205px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Billing and Order Summary sections */
+.billing-details,
+.order-summary {
+  flex: 1;
+  min-width: 320px;
+}
+
+/* Responsive Card Styling */
+.checkout-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.12);
+  padding: 28px;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.checkout-card:hover {
+  box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* Header styles */
+.checkout-header {
+  font-size: 1.4rem;
+  text-align: center;
+  letter-spacing: 1px;
+  color: black !important;
+  font-weight: bold !important;
+}
+
+.summary-header {
+}
+
+/* Input Fields */
+.checkout-input-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-input-group label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.checkout-input-group input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+}
+
+.checkout-input-group input:focus {
+  border: 1px solid #007bff;
+  box-shadow: 0px 0px 12px rgba(0, 123, 255, 0.4);
+  outline: none;
+  background: #ffffff;
+}
+
+/* Two-column layout for State & Postcode */
+.half-width {
+  width: 48%;
+}
+
+/* Order Summary */
+.summary-list {
+  list-style: none;
+  padding: 0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.total {
+  font-size: 1.1rem;
+  font-weight: bolder;
+}
+
+/* Promo Code Form Styles */
+.promo-form {
+  margin-top: 20px;
+}
+
+.promo-form .input-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.promo-input {
+  border-radius: 5px;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  width: 100%;
+  transition: border 0.3s ease-in-out;
+}
+
+.promo-input:focus {
+  border: 1px solid #007bff;
+  outline: none;
+  box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.4);
+}
+
+.promo-btn {
+  padding: 12px 18px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.promo-btn:hover {
+  background-color: #218838;
+}
+
+/* Purchase Button */
+.checkout-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 18px;
+  background: linear-gradient(90deg, #28a745, #218838);
+  color: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: 400;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+.checkout-btn:hover {
+  background: linear-gradient(90deg, #858a86, #4d4e4e);
+  box-shadow: 0px 6px 12px rgba(40, 167, 69, 0.35);
+}
+
+/* 💡 Fully Responsive Design for Mobile & Tablets */
+@media (max-width: 1024px) {
+  .checkout-container {
+    padding: 20px;
+    width: 100%;
+  }
+
+  .checkout-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .billing-details,
+  .order-summary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    padding: 16px;
+    width: 98%;
+  }
+
+  .checkout-card {
+    padding: 20px;
+  }
+
+  .checkout-input-group input {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+
+  .checkout-btn {
+    font-size: 1rem;
+    padding: 14px;
+  }
+
+  .half-width {
+    width: 100%;
+  }
+  .promo-input {
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    width: 100%;
+    transition: border 0.3s ease-in-out;
+  }
+
+  /* Promo code input form */
+  .promo-form .input-group {
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-container {
+    padding: 14px;
+    margin: 15px auto;
+    width: 100%;
+  }
+
+  .checkout-header {
+    font-size: 1.2rem;
+    padding: 12px;
+  }
+
+  .checkout-input-group input {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .checkout-btn {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  .checkout-row {
+    flex-direction: column;
+  }
+
+  .billing-details,
+  .order-summary {
+    width: 100%;
+  }
+  .promo-input {
+    border-radius: 5px;
+    padding: 6px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    width: 100%;
+    transition: border 0.3s ease-in-out;
+  }
+
+  /* Promo code input form */
+  .promo-form .input-group {
+  }
+}

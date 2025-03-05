@@ -1,0 +1,30 @@
+#billboard {
+  position: relative;
+}
+
+.banner-content {
+  height: 85vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+/* Button spacing */
+.btn-wrap .btn {
+  margin-top: 20px;
+}
+
+/* Smooth transition for Swiper slides */
+:global(.swiper-wrapper) {
+  transition-timing-function: linear;
+}
+
+/* Style Swiper navigation arrows */
+:global(.swiper-button-prev),
+:global(.swiper-button-next) {
+  color: gray;
+}
+.banner-title {
+  font-size: 5.2rem;
+}

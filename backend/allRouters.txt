@@ -1,0 +1,110 @@
+create Category = http://localhost:3000/category/create
+method = post
+
+get all category = http://localhost:3000/category/allcategory
+method = get 
+
+update category = http://localhost:3000/category/update/:id
+method = post
+
+delete category = http://localhost:3000/category/delete/:id
+method = post 
+
+
+
+get Single User  = http://localhost:3000/user/:userId
+method=get
+
+update user = http://localhost:3000/user/:userId
+method=put
+
+
+delete user = http://localhost:3000/user/:userId
+method=delete
+
+
+create user = http://localhost:3000/signup
+method = post
+
+login user = http://localhost:3000/login
+method = post
+
+
+
+
+create product = http://localhost:3000/product/create
+method = post
+
+all product = http://localhost:3000/product/allproduct
+method = get
+
+update product = http://localhost:3000/product/update/:id
+method = post
+
+delete product = http://localhost:3000/product/delete/:id
+method = post 
+
+get single product = http://localhost:3000/product/:id
+method = get
+
+
+
+add to cart = http://localhost:3000/cart/add
+method = post
+
+remove to cart = http://localhost:3000/cart/remove
+method = delete
+
+get cart = http://localhost:3000/cart/:userId
+method = get
+
+clear cart = http://localhost:3000/cart/clear/:userId
+method = delete
+
+
+add to wishlist = http://localhost:3000/wishlist/add
+method = post 
+
+get all wishlist  = http://localhost:3000/wishlist
+method = get 
+
+remove from wishlist = http://localhost:3000/remove
+method = delete
+
+
+create order = http://localhost:3000/order
+method = post
+
+get order = http://localhost:3000/order
+method = get
+
+update order = http://localhost:3000/order/:orderId
+method = put
+
+delete order = http://localhost:3000/order/:orderId
+method = delete
+
+
+
+
+create address = http://localhost:3000/address/create
+method = post
+
+get address = http://localhost:3000/address/user/:userId
+method = get
+
+get single address = http://localhost:3000/address/:addressId
+method = get
+
+update address = http://localhost:3000/address/update/:addressId
+method = put
+
+delete address = http://localhost:3000/address/delete/:addressId
+method = delete
+
+
+send message = http://localhost:3000/message
+method = post
+
+get message = http://localhost:3000/messages/:userId
+method=get
