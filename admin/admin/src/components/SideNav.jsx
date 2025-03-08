@@ -23,29 +23,35 @@ export default function SideNav() {
           </div>
         </div>
         <div className="navbar-nav w-100">
-          <Link to="/" className="nav-item nav-link my-2 ">
+          <Link to="/dashboard" className="nav-item nav-link my-2 ">
             <i className="fa fa-tachometer-alt me-2"></i>Dashboard
           </Link>
 
-          <Link to="/product" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/product" className="nav-item my-2 nav-link">
             <i className="fa fa-th me-2"></i>Products
           </Link>
-          <Link to="/category" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/category" className="nav-item my-2 nav-link">
             <i className="fa fa-solid fa-layer-group"></i>Category
           </Link>
-          <Link to="/orders" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/orders" className="nav-item my-2 nav-link">
             <i className="fa-solid fa-arrow-down-wide-short"></i>Order
           </Link>
-          <Link to="/selling-history" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/messages" className="nav-item my-2 nav-link">
+            <i class="fa-solid fa-message"></i>Messages
+          </Link>
+          <Link
+            to="/dashboard/selling-history"
+            className="nav-item my-2 nav-link"
+          >
             <i className="fa fa-solid fa-landmark-dome"></i>Selling History
           </Link>
-          <Link to="/employee" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/employee" className="nav-item my-2 nav-link">
             <i className="fa fa-solid fa-user-tie"></i>Employee
           </Link>
-          <Link to="/customers" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/customers" className="nav-item my-2 nav-link">
             <i className="fa fa-solid fa-users"></i>Customers
           </Link>
-          <Link to="/settings" className="nav-item my-2 nav-link">
+          <Link to="/dashboard/settings" className="nav-item my-2 nav-link">
             <i className="fa fa-solid fa-gear"></i>Setting
           </Link>
         </div>

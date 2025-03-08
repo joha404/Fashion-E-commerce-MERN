@@ -1,12 +1,18 @@
 const express = require("express");
-const router = express.Router();
-const { addMessage, getMessages } = require("../controllers/messageController"); // Import the controller methods
+const messageRouter = express.Router();
+const {
+  addMessage,
+  getMessages,
+  deleteMessage,
+} = require("../controllers/messageController"); // Import the controller methods
 const verifyToken = require("../middlewire/verifyToken");
 
 // Route to add a new message
-router.post("/message", verifyToken, addMessage);
+messageRouter.post("/message", verifyToken, addMessage);
 
 // Route to fetch messages for a specific user
-router.get("/messages", getMessages);
+messageRouter.get("/messages", getMessages);
 
-module.exports = router;
+messageRouter.delete("/messages/delete/:id", deleteMessage);
+
+module.exports = messageRouter;

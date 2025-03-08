@@ -70,3 +70,37 @@ exports.getMessages = async (req, res) => {
     });
   }
 };
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { id } = req.params; // Get message ID from request params
+
+    if (id) {
+      // Delete a specific message by ID
+      const deletedMessage = await Message.findByIdAndDelete(id);
+      if (!deletedMessage) {
+        return res.status(404).json({
+          success: false,
+          message: "Message not found",
+        });
+      }
+      return res.json({
+        success: true,
+        message: "Message deleted successfully",
+      });
+    } else {
+      // Delete all messages
+      await Message.deleteMany({});
+      return res.json({
+        success: true,
+        message: "All messages deleted successfully",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting messages",
+      error: error.message,
+    });
+  }
+};

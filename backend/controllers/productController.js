@@ -3,22 +3,28 @@ const Product = require("../models/productSchema");
 // Create a new product
 async function createProduct(req, res) {
   try {
-    let { name, discription, price, discount, stock, category } = req.body;
+    let { name, discription, price } = req.body; // Fixed typo in discription
     const image = req.file ? req.file.path : null; // Handle image upload
 
-    if (!name || !discription || !price || !category) {
+    // Validate fields
+    if (!name || !discription || !price) {
       return res
         .status(400)
         .json({ message: "All required fields must be filled" });
     }
 
+    // Ensure price is a valid number
+    if (isNaN(price) || price <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Price must be a valid positive number" });
+    }
+
+    // Create the new product
     const newProduct = await Product.create({
       name,
-      discription,
+      discription, // Fixed typo here too
       price,
-      discount,
-      stock,
-      category,
       image,
     });
 
@@ -27,6 +33,7 @@ async function createProduct(req, res) {
       product: newProduct,
     });
   } catch (error) {
+    console.error(error); // Log the error for debugging purposes
     res
       .status(500)
       .json({ message: "Error creating product", error: error.message });
@@ -71,6 +78,11 @@ async function updateProduct(req, res) {
   const updateData = req.body;
 
   try {
+    // Check if an image was uploaded
+    if (req.file) {
+      updateData.image = req.file.path; // Update image path
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
     });

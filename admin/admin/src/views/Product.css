@@ -1,0 +1,40 @@
+#updateIcon {
+  font-size: 22px !important;
+}
+#product_button:hover {
+  background: none !important;
+}
+#updateIcon:hover {
+  color: black;
+}
+.productDetailsTbody td {
+  height: 100% !important;
+}
+.productDetailsTable {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.productDetailsInAdmin {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#AddNewProductButton {
+  width: 130px;
+}
+.ModalContent {
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  padding: 15px;
+  border: none;
+  margin-top: 170px !important;
+}
+.productNameAdmin {
+  height: 100px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

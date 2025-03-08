@@ -2,65 +2,60 @@ const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 const DBConnect = require("./config/db");
-const path = require("path");
-const cors = require("cors");
 const SSLCommerzPayment = require("sslcommerz-lts");
 const orderSchema = require("./models/orderSchema");
-const fs = require("fs");
+const adminRoute = require("./routes/adminRoute");
+
+// Define allowed origins for CORS
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Change this to your frontend URL
-    credentials: true, // Allows cookies to be sent/received
+    origin: "*", // This allows all origins
+    credentials: true, // Allow cookies
+    methods: "GET, POST, PUT, DELETE, OPTIONS", // Specify allowed HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
   })
 );
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
+// Connect to the database
 DBConnect();
-app.use(bodyParser.json());
-const port = process.env.PORT;
 
+// Middleware
+app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Define port with a fallback value
+const port = process.env.PORT || 5000;
+
+// Home route
 app.get("/", (req, res) => {
   res.send("Home Page");
 });
+
+// Static file serving for uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Import routes
-const userRoutes = require("./routes/userRoute");
-app.use("/", userRoutes);
+// Import and use routes
+app.use("/", require("./routes/userRoute"));
+app.use("/admin", require("./routes/adminRoute"));
+app.use("/category", require("./routes/categoryRoute"));
+app.use("/product", require("./routes/productRoute"));
+app.use("/cart", require("./routes/cartRoute"));
+app.use("/wishlist", require("./routes/wishlistRoute"));
+app.use("/", require("./routes/messageRoute"));
+app.use("/checkout", require("./routes/checkoutRoute"));
 
-const categoryRoutes = require("./routes/categoryRoute");
-app.use("/category", categoryRoutes);
-
-const productRoutes = require("./routes/productRoute");
-app.use("/product", productRoutes);
-
-const cartRoutes = require("./routes/cartRoute");
-app.use("/cart", cartRoutes);
-
-const wishlistRouter = require("./routes/wishlistRoute");
-app.use("/wishlist", wishlistRouter);
-
-const messageRouter = require("./routes/messageRoute");
-app.use("/", messageRouter);
-// Order Routes (Checkout Logic)
-const orderController = require("./controllers/checkoutController"); // Import the orderController.js
-const OrderRoutes = require("./routes/checkoutRoute"); // Checkout route
-app.use("/checkout", OrderRoutes);
-
-// Add checkout POST route directly in index.js
+// Checkout Route
+const orderController = require("./controllers/checkoutController");
 app.post("/checkout", orderController.processCheckout);
 
+// Payment Success Route
 app.post("/success/:tran_id", async (req, res) => {
   const { tran_id } = req.params;
 
@@ -71,7 +66,7 @@ app.post("/success/:tran_id", async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Update the order's paid status to true
+    // Update order's paid status
     const updateResult = await orderSchema.updateOne(
       { tranjectionId: tran_id },
       { $set: { paidStatus: true } }
@@ -87,19 +82,15 @@ app.post("/success/:tran_id", async (req, res) => {
               .status(500)
               .json({ message: "Error reading success page" });
           }
-
           return res.send(data);
         }
       );
     } else {
-      console.log(`Order with ID ${tran_id} was not updated.`);
       return res.status(400).json({ message: "Failed to update order status" });
     }
   } catch (error) {
-    console.error("Error while updating the order: ", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: error });
+    console.error("Error while updating the order:", error);
+    return res.status(500).json({ message: "Internal server error", error });
   }
 });
 
@@ -109,6 +100,7 @@ app.post("/fail", (req, res) => {
   res.send("Payment failed");
 });
 
+// Start the server
 app.listen(port, () => {
-  console.log(`Server Running on ${port}`);
+  console.log(`Server Running on port ${port}`);
 });

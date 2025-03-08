@@ -72,12 +72,23 @@ async function getCart(req, res) {
 async function removeFromCart(req, res) {
   const { userId, productId } = req.body;
 
+  console.log("Received productId in backend:", productId); // Debugging
+
   try {
     const cart = await Cart.findOne({ userId });
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
 
+    // Check if productId exists in cart.items
+    const productExistsInCart = cart.items.some((item) =>
+      item.productId.equals(productId)
+    );
+    if (!productExistsInCart) {
+      return res.status(400).json({ message: "Product not found in cart" });
+    }
+
+    // Filter out the item with the matching productId
     cart.items = cart.items.filter((item) => !item.productId.equals(productId));
     cart.totalPrice = cart.items.reduce(
       (total, item) => total + item.quantity * item.price,
@@ -87,12 +98,13 @@ async function removeFromCart(req, res) {
     await cart.save();
     res.status(200).json({ message: "Item removed from cart", cart });
   } catch (err) {
-    console.error(err);
+    console.error("Error removing item from cart:", err);
     res
       .status(500)
       .json({ message: "Error removing item from cart", error: err.message });
   }
 }
+
 async function updateCartQuantity(req, res) {
   const { userId, productId, quantity } = req.body;
 

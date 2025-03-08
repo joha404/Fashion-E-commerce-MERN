@@ -108,3 +108,9 @@ method = post
 
 get message = http://localhost:3000/messages/:userId
 method=get
+
+
+create admin = http://localhost:3000/admin/create
+method = post
+login admin = http://localhost:3000/admin/login
+method = post

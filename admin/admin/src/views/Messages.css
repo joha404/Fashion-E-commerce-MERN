@@ -1,0 +1,58 @@
+.messages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px;
+}
+.messageSection {
+  width: 50%;
+}
+.messageBody {
+  height: 280px;
+  width: 100%;
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+    rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  background-color: #f3f6f9;
+  border-radius: 7px;
+  padding: 15px;
+}
+.messageUserImage {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+}
+.messageUserTop {
+  display: flex;
+  justify-content: space-between;
+}
+.messageUserImageDiv {
+  display: flex;
+}
+.messageUserDetails {
+  margin-top: 5px;
+  margin-left: 13px;
+}
+.messageUserDetails p {
+  margin-top: -12px;
+}
+.fa-trash {
+  font-size: 24px;
+  cursor: pointer;
+}
+.fa-trash:hover {
+  color: #2a2a2a !important;
+}
+.userMessage {
+  height: 100px;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 7px;
+  padding: 15px;
+  overflow-y: scroll;
+}
+.messageBottom {
+  width: 100%;
+}
+.messageBottom a {
+  text-align: right !important;
+}
