@@ -38,14 +38,16 @@ const Login = () => {
         }
       );
 
-      const token = response.data.token; // Assuming token comes from API response
+      // Assuming the token is inside response.data.token
+      const token = response.data.token;
+      console.log("Token is :", token);
       if (token) {
         localStorage.setItem("token", token); // Store token in localStorage
         console.log("Token stored in localStorage:", token); // Debugging log
       }
 
       // Redirect if login is successful
-      window.location.href = "/";
+      navigate("/"); // Using the navigate function instead of window.location.href
     } catch (error) {
       console.error("Error during login:", error);
       setError(

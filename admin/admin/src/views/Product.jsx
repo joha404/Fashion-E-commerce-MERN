@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "./Product.css";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    discription: "",
-    image: null,
-  });
-
+  const [categories, setCategories] = useState([]);
   const [addFormData, setAddFormData] = useState({
     name: "",
     price: "",
     discription: "",
+    oldPrice: "",
+    stock: "",
+    categoryName: "",
     image: null,
+    _id: null, // Added _id to handle update functionality
   });
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -39,117 +36,123 @@ export default function Product() {
     }
   };
 
-  // Open the update modal
-  const openUpdateModal = (product) => {
-    setSelectedProduct(product);
-    setFormData({
-      name: product.name,
-      price: product.price,
-      discription: product.discription,
-      image: null, // Reset image when opening update modal
-    });
-    setModalVisible(true);
-  };
-
-  // Handle file change for update modal
-  const handleFileChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
-  };
-
-  // Handle input change for update modal
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Submit updated product
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-
-    const updatedProductData = new FormData();
-    updatedProductData.append("name", formData.name);
-    updatedProductData.append("price", formData.price);
-    updatedProductData.append("discription", formData.discription);
-
-    if (formData.image) {
-      updatedProductData.append("image", formData.image);
-    }
-
-    console.log("Submitting updated data:", updatedProductData);
-
+  const fetchCategories = async () => {
     try {
-      const response = await axios.put(
-        `http://localhost:3000/product/update/${selectedProduct._id}`,
-        updatedProductData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+      const response = await axios.get(
+        "http://localhost:3000/category/allcategory"
       );
-
-      Swal.fire({
-        title: "Product Updated Successfully!",
-        icon: "success",
-        draggable: true,
-      }).then(() => {
-        // Reload the products or refresh the page after the SweetAlert is closed
-        fetchProducts(); // Fetch updated list of products
-        setModalVisible(false); // Close the modal
-      });
+      setCategories(response.data);
     } catch (error) {
-      console.error(
-        "Error updating product:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("Error fetching categories:", error.message);
     }
   };
 
-  // Handle file change for add modal
   const handleAddFileChange = (e) => {
     setAddFormData({ ...addFormData, image: e.target.files[0] });
   };
-
-  // Handle input change for add modal
   const handleAddChange = (e) => {
-    setAddFormData({ ...addFormData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setAddFormData((prevState) => ({
+      ...prevState,
+      [name]: name === "stock" ? value === "true" : value, // Handle stock as boolean
+    }));
   };
 
-  // Submit new product
+  const handleEditClick = (product) => {
+    setAddFormData({
+      name: product.name,
+      price: product.price,
+      discription: product.discription,
+      oldPrice: product.oldPrice || "",
+      stock: product.stock ? "true" : "false",
+      categoryName: product.categoryName,
+      image: null, // Do not set image as it'll be uploaded again
+      _id: product._id, // Set the _id for the update operation
+    });
+
+    // Open the modal
+    const modal = new bootstrap.Modal(
+      document.getElementById("addProductModal")
+    );
+    modal.show();
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate categoryName before submitting
+    if (!addFormData.categoryName) {
+      Swal.fire("Error", "Please select a category.", "error");
+      return;
+    }
 
     const newProductData = new FormData();
     newProductData.append("name", addFormData.name);
     newProductData.append("price", addFormData.price);
+    newProductData.append("oldPrice", addFormData.oldPrice);
+    newProductData.append("stock", addFormData.stock);
+    newProductData.append("categoryName", addFormData.categoryName);
     newProductData.append("discription", addFormData.discription);
 
     if (addFormData.image) {
       newProductData.append("image", addFormData.image);
     }
 
-    console.log("Submitting new data:", newProductData);
-
     try {
-      const response = await axios.post(
-        "http://localhost:3000/product/create",
-        newProductData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      let response;
+      if (addFormData._id) {
+        // Update existing product
+        response = await axios.put(
+          `http://localhost:3000/product/update/${addFormData._id}`,
+          newProductData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
 
-      console.log("Server Response:", response.data);
-      setProducts([...products, response.data.product]); // Update list immediately
-      setAddModalVisible(false);
-      Swal.fire({
-        title: "Product Added Successfully!",
-        icon: "success",
-        draggable: true,
-      });
+        const updatedProducts = products.map((product) =>
+          product._id === addFormData._id ? response.data.product : product
+        );
+        setProducts(updatedProducts);
+      } else {
+        // Create new product
+        response = await axios.post(
+          "http://localhost:3000/product/create",
+          newProductData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        setProducts([...products, response.data.product]);
+      }
+
+      if (response.data && response.data.product) {
+        Swal.fire("Product Saved Successfully!", "", "success");
+
+        // Reset form
+        setAddFormData({
+          name: "",
+          price: "",
+          discription: "",
+          oldPrice: "",
+          stock: "",
+          categoryName: "",
+          image: null,
+          _id: null,
+        });
+
+        // Close modal
+        const closeModalButton = document.querySelector(
+          "#addProductModal .btn-close"
+        );
+        closeModalButton.click();
+      } else {
+        Swal.fire("Error", "Failed to save product.", "error");
+      }
     } catch (error) {
-      console.error(
-        "Error adding product:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("Error saving product:", error.message);
+      Swal.fire("Error", "There was an error saving the product.", "error");
     }
   };
 
-  // Delete product
-  const deleteProduct = async (productId) => {
+  const handleDeleteClick = async (productId) => {
     try {
       // Send the delete request to the server
       await axios.delete(`http://localhost:3000/product/delete/${productId}`);
@@ -180,16 +183,17 @@ export default function Product() {
   return (
     <div className="container pt-4 px-4">
       <div className="bg-light text-center rounded p-4">
-        <div className="productDetailsInAdmin">
-          <h6 className="mb-4">Our All Products</h6>
-          <button
-            className="btn btn-success mb-3"
-            id="AddNewProductButton"
-            onClick={() => setAddModalVisible(true)}
-          >
-            Add New
-          </button>
-        </div>
+        <h6 className="mb-4">Our Products</h6>
+
+        {/* Add Product Button */}
+        <button
+          className="btn btn-success mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#addProductModal"
+        >
+          Add New Product
+        </button>
+
         {loading ? (
           <p>Loading products...</p>
         ) : (
@@ -201,64 +205,45 @@ export default function Product() {
                   <th>Image</th>
                   <th>Name</th>
                   <th>Price</th>
-                  <th>Discription</th>
+                  <th>Description</th>
                   <th>Action</th>
                 </tr>
               </thead>
-              <tbody className="productDetailsTbody">
+              <tbody>
                 {products.length > 0 ? (
                   products.reverse().map((product) => (
-                    <tr key={product.id}>
-                      <td className="">
-                        <div className="productNameAdmin">
-                          {new Date(product.createdAt).toLocaleDateString()}
-                        </div>
+                    <tr key={product._id}>
+                      <td>
+                        {new Date(product.createdAt).toLocaleDateString()}
                       </td>
                       <td>
                         <img
                           src={
                             product.image
                               ? `http://localhost:3000/${product.image}`
-                              : "https://via.placeholder.com/50"
+                              : "https://via.placeholder.com/100"
                           }
                           alt={product.name}
                           width="100"
                           height="100"
                         />
                       </td>
-                      <td className="">
-                        <div className="productNameAdmin">{product.name}</div>
-                      </td>
+                      <td>{product.name}</td>
+                      <td>${product.price.toFixed(2)}</td>
+                      <td>{product.discription}</td>
                       <td>
-                        <div className="productNameAdmin">
-                          ${product.price.toFixed(2)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="productNameAdmin">
-                          {product.discription}
-                        </div>
-                      </td>
-                      <td className="d-flex">
-                        <div className="productNameAdmin">
-                          <button
-                            className="btn btn-sm mx-1"
-                            id="product_button"
-                            onClick={() => openUpdateModal(product)}
-                          >
-                            <i
-                              id="updateIcon"
-                              class="fa-solid fa-pen-to-square"
-                            ></i>
-                          </button>
-                          <button
-                            className="btn btn-sm mx-1"
-                            id="product_button"
-                            onClick={() => deleteProduct(product._id)}
-                          >
-                            <i class="fa-solid fa-trash"></i>
-                          </button>
-                        </div>
+                        <button
+                          className="btn btn-sm mx-1"
+                          onClick={() => handleEditClick(product)}
+                        >
+                          <i className="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm mx-1"
+                          onClick={() => handleDeleteClick(product._id)}
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -274,147 +259,126 @@ export default function Product() {
       </div>
 
       {/* Add Product Modal */}
-      {addModalVisible && (
-        <div
-          className="modal show "
-          tabIndex="-1"
-          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content ModalContent">
-              <div className="modal-header">
-                <h5 className="modal-title text-center">Add New Product</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setAddModalVisible(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <form onSubmit={handleAddSubmit} encType="multipart/form-data">
-                  <div className="mb-3">
-                    <label className="form-label">Product Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="name"
-                      value={addFormData.name}
-                      onChange={handleAddChange}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="price"
-                      value={addFormData.price}
-                      onChange={handleAddChange}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Discription</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="discription"
-                      value={addFormData.discription}
-                      onChange={handleAddChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Image</label>
-                    <input
-                      type="file"
-                      className="form-control"
-                      name="image"
-                      onChange={handleAddFileChange}
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary">
-                    Add Product
-                  </button>
-                </form>
-              </div>
+      <div
+        className="modal fade"
+        id="addProductModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Add New Product</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
-          </div>
-        </div>
-      )}
+            <div className="modal-body">
+              <form onSubmit={handleAddSubmit}>
+                {/* Name */}
+                <div className="mb-3">
+                  <label className="form-label">Product Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="name"
+                    value={addFormData.name}
+                    onChange={handleAddChange}
+                    required
+                  />
+                </div>
 
-      {/* Update Product Modal */}
-      {modalVisible && selectedProduct && (
-        <div
-          className="modal show"
-          tabIndex="-1"
-          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content ModalContent">
-              <div className="modal-header">
-                <h5 className="modal-title">Update Product</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setModalVisible(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <form
-                  onSubmit={handleUpdateSubmit} // Use the form's submit handler
-                  encType="multipart/form-data"
+                {/* Description */}
+                <div className="mb-3">
+                  <label className="form-label">Description</label>
+                  <textarea
+                    className="form-control"
+                    name="discription"
+                    value={addFormData.discription}
+                    onChange={handleAddChange}
+                    required
+                  ></textarea>
+                </div>
+
+                {/* Old Price */}
+                <div className="mb-3">
+                  <label className="form-label">Old Price (Optional)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="oldPrice"
+                    value={addFormData.oldPrice}
+                    onChange={handleAddChange}
+                  />
+                </div>
+
+                {/* Price */}
+                <div className="mb-3">
+                  <label className="form-label">Price</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="price"
+                    value={addFormData.price}
+                    onChange={handleAddChange}
+                    required
+                  />
+                </div>
+
+                {/* Stock */}
+                <div className="mb-3">
+                  <label className="form-label">Stock Status</label>
+                  <select
+                    className="form-control"
+                    name="stock"
+                    value={addFormData.stock}
+                    onChange={handleAddChange}
+                    required
+                  >
+                    <option value="">Select Stock Status</option>
+                    <option value="true">In Stock</option>
+                    <option value="false">Out of Stock</option>
+                  </select>
+                </div>
+
+                <select
+                  className="form-control"
+                  name="categoryName"
+                  value={addFormData.categoryName}
+                  onChange={handleAddChange}
+                  required
                 >
-                  <div className="mb-3">
-                    <label className="form-label">Product Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Discription</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="discription"
-                      value={formData.discription}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Image</label>
-                    <input
-                      type="file"
-                      className="form-control"
-                      name="image"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary">
-                    Update Product
-                  </button>
-                </form>
-              </div>
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Image Upload */}
+                <div className="mb-3">
+                  <label className="form-label">Product Image</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    name="image"
+                    onChange={handleAddFileChange}
+                    required
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary">
+                  Save Product
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

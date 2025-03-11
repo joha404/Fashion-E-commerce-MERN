@@ -1,31 +1,41 @@
 const Product = require("../models/productSchema");
+const Category = require("../models/categorySchema");
 
 // Create a new product
 async function createProduct(req, res) {
   try {
-    let { name, discription, price } = req.body; // Fixed typo in discription
+    let { name, discription, price, oldPrice, stock, categoryName } = req.body; // Include all fields
     const image = req.file ? req.file.path : null; // Handle image upload
 
-    // Validate fields
-    if (!name || !discription || !price) {
+    if (!name || !discription || !price || !categoryName) {
       return res
         .status(400)
         .json({ message: "All required fields must be filled" });
     }
 
-    // Ensure price is a valid number
     if (isNaN(price) || price <= 0) {
       return res
         .status(400)
         .json({ message: "Price must be a valid positive number" });
     }
 
-    // Create the new product
+    // Find the category by name
+    let category = await Category.findOne({ name: categoryName });
+
+    // If category does not exist, create it
+    if (!category) {
+      category = await Category.create({ name: categoryName });
+    }
+
+    // Create the new product with the category ID
     const newProduct = await Product.create({
       name,
-      discription, // Fixed typo here too
+      discription,
       price,
+      oldPrice: oldPrice || "", // Default to empty string if not provided
+      stock: stock || false, // Default to false if not provided
       image,
+      category: category._id, // Store ObjectId reference
     });
 
     res.status(201).json({
@@ -33,17 +43,17 @@ async function createProduct(req, res) {
       product: newProduct,
     });
   } catch (error) {
-    console.error(error); // Log the error for debugging purposes
+    console.error(error);
     res
       .status(500)
       .json({ message: "Error creating product", error: error.message });
   }
 }
 
-// Get all products
+// Get all products with category names
 async function allProducts(req, res) {
   try {
-    const products = await Product.find();
+    const products = await Product.find().populate("category", "name"); // Populate category
     res.status(200).json(products);
   } catch (error) {
     res
@@ -57,7 +67,7 @@ async function singleProduct(req, res) {
   const { id } = req.params;
 
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate("category", "name"); // Populate category
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -83,9 +93,21 @@ async function updateProduct(req, res) {
       updateData.image = req.file.path; // Update image path
     }
 
+    // If category name is provided, find or create the category and update category ID
+    if (updateData.categoryName) {
+      let category = await Category.findOne({ name: updateData.categoryName });
+
+      if (!category) {
+        category = await Category.create({ name: updateData.categoryName });
+      }
+
+      updateData.category = category._id;
+      delete updateData.categoryName; // Remove categoryName to avoid conflicts
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
-    });
+    }).populate("category", "name"); // Populate category
 
     if (!updatedProduct) {
       return res.status(404).json({ message: "Product not found" });

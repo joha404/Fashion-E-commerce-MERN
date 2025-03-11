@@ -133,10 +133,9 @@ export default function BestSelling() {
                 {products.map((product) => (
                   <div
                     key={product._id}
-                    className="product-item col-lg-3 col-md-6 col-sm-6"
+                    className="product-item col-lg-3 col-md-6 col-sm-6 "
                   >
                     <div className="image-holder">
-                      {/* If you want to wrap the image with a link */}
                       <Link to={`/product/${product._id}`}>
                         <img
                           src={
