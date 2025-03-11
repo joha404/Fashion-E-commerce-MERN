@@ -75,7 +75,7 @@ method = delete
 create order = http://localhost:3000/order
 method = post
 
-get order = http://localhost:3000/order
+get order = http://localhost:3000/checkout
 method = get
 
 update order = http://localhost:3000/order/:orderId

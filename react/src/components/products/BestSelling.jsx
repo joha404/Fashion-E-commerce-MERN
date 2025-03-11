@@ -19,6 +19,7 @@ export default function BestSelling() {
     const fetchProducts = async () => {
       try {
         const response = await axios.get("http://localhost:3000/product/all");
+        console.log(response.data); // Log to check if `oldPrice` and `stock` are present
         if (response.data.length > 0) {
           setProducts(response.data);
         } else {
@@ -180,9 +181,23 @@ export default function BestSelling() {
                       <h3 className="product-title">
                         <a href={`/product/${product._id}`}>{product.name}</a>
                       </h3>
+
+                      {/* Conditionally render oldPrice and stock */}
+                      {product.oldPrice && (
+                        <div className="item-price text-primary">
+                          <del> ${product.oldPrice} </del>
+                        </div>
+                      )}
                       <div className="item-price text-primary">
                         ${product.price}
                       </div>
+
+                      {/* Display stock status */}
+                      {product.stock > 0 ? (
+                        <div className="item-stock">Available</div>
+                      ) : (
+                        <div className="item-stock">Stock Out</div>
+                      )}
                     </div>
                   </div>
                 ))}

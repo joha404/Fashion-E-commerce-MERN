@@ -63,8 +63,6 @@ export default function Category() {
           `http://localhost:3000/category/update/${addFormData._id}`,
           { name: addFormData.name, discription: addFormData.discription }
         );
-
-        // Ensure the response contains updated category data
         if (response.data && response.data.category) {
           setCategories((prev) =>
             prev.map((category) =>

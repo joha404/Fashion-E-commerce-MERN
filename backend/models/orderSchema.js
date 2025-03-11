@@ -20,6 +20,11 @@ const orderSchema = new mongoose.Schema(
     totalAmount: { type: Number, required: true },
     tranjectionId: { type: String, required: true },
     paidStatus: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected"],
+      default: "Pending",
+    },
   },
   { timestamps: true }
 );

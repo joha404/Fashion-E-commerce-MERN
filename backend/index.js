@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
-const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
@@ -11,20 +10,19 @@ const SSLCommerzPayment = require("sslcommerz-lts");
 const orderSchema = require("./models/orderSchema");
 const adminRoute = require("./routes/adminRoute");
 
-// Define allowed origins for CORS
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const cors = require("cors");
+
+const allowedOrigins = [
+  "http://localhost:5173", // Add your frontend URL
+  "http://localhost:5174",
+  "https://your-production-domain.com", // Add your live frontend domain if applicable
+];
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, origin);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // Temporarily allow all origins for testing
     credentials: true,
-    methods: "GET, POST, PUT, DELETE, OPTIONS",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
