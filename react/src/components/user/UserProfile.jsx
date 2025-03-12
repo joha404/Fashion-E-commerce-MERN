@@ -1,105 +1,136 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import userAvatar from "../../assets/img/user.jpg";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import "./UserProfile.css";
+import userImg from "../../assets/img/user.jpg";
 
-export default function TopNav() {
-  const [adminName, setAdminName] = useState("");
-  const navigate = useNavigate();
+export default function UserProfile() {
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Function to get the token from localStorage
-  const getTokenFromLocalStorage = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      return token;
-    } else {
-      console.warn("No authentication token found in localStorage");
-      return null;
-    }
-  };
+  // Retrieve token and userId from localStorage
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchUser = async () => {
+    if (!token) {
+      setError("User not logged in.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchUserAndOrders = async () => {
       try {
-        const token = getTokenFromLocalStorage(); // Fetch token from localStorage
-
-        if (!token) {
-          console.warn("No authentication token found");
-          return;
-        }
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.userId;
-
-        if (!userId) {
-          console.error("User ID not found in token");
-          return;
-        }
-
-        const response = await axios.get(
-          `http://localhost:3000/user/${userId}`
+        // Fetch User Info
+        const userResponse = await axios.get(
+          "http://localhost:3000/user/profile",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
-        setAdminName(response.data.name); // Assuming response contains admin name or user name
+        setUser(userResponse.data);
+        const userId = userResponse.data._id; // Get userId from response
+
+        // Fetch User Orders
+        const ordersResponse = await axios.get(
+          `http://localhost:3000/orders/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setOrders(ordersResponse.data);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching data:", error);
+        setError("Failed to fetch user data. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUser();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        localStorage.removeItem("token"); // Remove token from localStorage
-        setAdminName("");
-        navigate("/"); // Redirect to home page or login page
-      } else {
-        console.error("Logout failed");
-      }
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
+    fetchUserAndOrders();
+  }, [token]);
 
   return (
-    <nav className="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0 container">
-      <div className="navbar-nav align-items-center ms-auto">
-        <div className="nav-item dropdown">
-          <a
-            href="#"
-            className="nav-link dropdown-toggle"
-            data-bs-toggle="dropdown"
-          >
-            <img
-              className="rounded-circle me-lg-2"
-              src={userAvatar}
-              alt=""
-              style={{ width: "40px", height: "40px" }}
-            />
-            <span className="d-none d-lg-inline-flex">
-              {adminName || "Admin"}
-            </span>
-          </a>
-          <div className="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-            <a href="#" className="dropdown-item">
-              My Profile
-            </a>
-            <a href="#" className="dropdown-item">
-              Settings
-            </a>
-            <a href="#" className="dropdown-item" onClick={handleLogout}>
-              Log Out
-            </a>
+    <div className="container">
+      <div className="row profile">
+        <div className="col-md-3">
+          <div className="profile-sidebar">
+            <div className="profile-userpic text-center">
+              <img src={userImg} className="img-responsive" alt="User" />
+            </div>
+
+            <div className="profile-usertitle">
+              <div className="profile-usertitle-name">
+                {user ? user.name : "User Name"}
+              </div>
+              <div className="profile-usertitle-job">
+                {user?.role || "User"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-9">
+          <div className="profile-content">
+            <div className="container pt-4 px-4">
+              <div className="bg-light text-center rounded p-4">
+                <div className="d-flex align-items-center mb-4">
+                  <h6 className="mb-0">User Orders</h6>
+                </div>
+
+                {loading ? (
+                  <p>Loading orders...</p>
+                ) : error ? (
+                  <p>{error}</p>
+                ) : orders.length === 0 ? (
+                  <p>No orders found.</p>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table text-center align-middle table-bordered table-hover mb-0">
+                      <thead>
+                        <tr className="text-dark">
+                          <th scope="col">Date</th>
+                          <th scope="col">User Name</th>
+                          <th scope="col">Address</th>
+                          <th scope="col">Phone</th>
+                          <th scope="col">Quantity</th>
+                          <th scope="col">Total Price</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Transaction ID</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.reverse().map((order) => (
+                          <tr key={order._id}>
+                            <td>
+                              {new Date(order.createdAt).toLocaleDateString(
+                                "en-BD",
+                                { day: "numeric", month: "short" }
+                              )}
+                            </td>
+                            <td>{order.user?.name || "N/A"}</td>
+                            <td>{order.user?.address || "N/A"}</td>
+                            <td>{order.user?.phone || "N/A"}</td>
+                            <td>
+                              {order.cart.reduce(
+                                (acc, item) => acc + item.quantity,
+                                0
+                              )}
+                            </td>
+                            <td>${order.totalAmount.toFixed(2)}</td>
+                            <td>{order.status}</td>
+                            <td>{order.transactionId || "N/A"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </nav>
+    </div>
   );
 }

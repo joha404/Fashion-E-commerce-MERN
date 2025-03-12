@@ -1,14 +1,39 @@
-.userProfileSection {
-  height: auto;
-  width: 100%;
-  padding: 15px;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,
-    rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+.icon-hover:hover {
+  border-color: #3b71ca !important;
+  background-color: white !important;
 }
-.userDetails {
-  text-align: center;
+
+.icon-hover:hover i {
+  color: #3b71ca !important;
 }
-.sserOrderDetails {
+.profile {
+  margin: 20px 0;
+}
+
+/* Profile sidebar */
+.profile-sidebar {
+  padding: 20px 0 10px 0;
+  background: #fff;
+}
+
+.profile-userpic img {
+  float: none;
+  margin: 0 auto;
+  width: 50%;
+  height: 50%;
+  -webkit-border-radius: 50% !important;
+  -moz-border-radius: 50% !important;
+  border-radius: 50% !important;
+}
+
+.profile-usertitle {
   text-align: center;
-  margin-top: 50px;
+  margin-top: 20px;
+}
+
+.profile-usertitle-name {
+  color: #5a7391;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 7px;
 }

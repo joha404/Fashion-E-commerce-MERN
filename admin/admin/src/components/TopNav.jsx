@@ -1,47 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import userAvatar from "../../assets/img/user.jpg";
 import axios from "axios";
+import userAvatar from "../../assets/img/user.jpg";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min";
+import { Dropdown } from "bootstrap";
+import "./TopNav.css";
 
 export default function TopNav() {
-  const [message, setMessage] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
-  const [adminName, setAdminName] = useState("");
+  const [adminName, setAdminName] = useState("Admin");
   const navigate = useNavigate();
 
-  // Function to get the token from cookies
-  const getTokenFromCookies = () => {
-    const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith("token=")) {
-        return cookie.substring("token=".length);
-      }
-    }
-    return null;
-  };
-
-  // Function to get token from localStorage
-  const getTokenFromLocalStorage = () => localStorage.getItem("token");
-
   useEffect(() => {
-    // Get the token from localStorage or cookies
-    const localStorageToken = getTokenFromLocalStorage();
-    const cookieToken = getTokenFromCookies();
+    const dropdownElements = document.querySelectorAll(".dropdown-toggle");
+    dropdownElements.forEach((dropdown) => {
+      new Dropdown(dropdown);
+    });
+    const localStorageToken = localStorage.getItem("token");
+    const cookieToken =
+      document.cookie
+        .split(";")
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith("token="))
+        ?.split("=")[1] || null;
     const currentToken = localStorageToken || cookieToken;
     setToken(currentToken);
 
-    // Fetch Admin Name from LocalStorage first
-    const storedAdminName = localStorage.getItem("adminName");
-    if (storedAdminName) {
-      setAdminName(storedAdminName);
-    } else if (currentToken) {
+    if (currentToken) {
       fetchAdminName(currentToken);
     }
   }, []);
 
-  // Function to fetch Admin Name from backend
   const fetchAdminName = async (authToken) => {
     try {
       const response = await axios.get("http://localhost:3000/admin-info", {
@@ -58,33 +50,30 @@ export default function TopNav() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:3000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
+      const response = await axios.post(
+        "http://localhost:3000/logout",
+        {},
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
         localStorage.removeItem("token");
         localStorage.removeItem("adminName");
         document.cookie =
           "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         setToken(null);
-
-        window.location.href = "/login";
-      } else {
-        console.error("Logout failed");
+        navigate("/login");
       }
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Logout failed:", error);
     }
   };
 
   useEffect(() => {
-    const fetchMessage = async () => {
+    const fetchMessages = async () => {
       try {
         const response = await axios.get("http://localhost:3000/messages");
         if (Array.isArray(response.data)) {
-          setMessage(response.data);
+          setMessages(response.data);
         }
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -92,8 +81,7 @@ export default function TopNav() {
         setLoading(false);
       }
     };
-
-    fetchMessage();
+    fetchMessages();
   }, []);
 
   return (
@@ -106,110 +94,109 @@ export default function TopNav() {
         />
       </form>
       <div className="navbar-nav align-items-center ms-auto">
-        {/* Messages Dropdown */}
         <div className="nav-item dropdown">
           <a
             href="#"
             className="nav-link dropdown-toggle"
+            id="messagesDropdown"
+            role="button"
             data-bs-toggle="dropdown"
+            aria-expanded="false"
           >
             <i className="fa fa-envelope me-lg-2"></i>
             <span className="d-none d-lg-inline-flex">Message</span>
           </a>
-          <div className="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+          <ul
+            className="dropdown-menu dropdown-menu-end messagesAllItem"
+            aria-labelledby="messagesDropdown"
+          >
             {loading ? (
-              <p className="dropdown-item">Loading messages...</p>
-            ) : message.length > 0 ? (
-              message.slice(-3).map((item, index) => (
+              <li className="dropdown-item ">Loading messages...</li>
+            ) : messages.length > 0 ? (
+              messages.slice(-3).map((item, index) => (
                 <React.Fragment key={index}>
-                  <a href="#" className="dropdown-item">
-                    <div className="d-flex align-items-center">
-                      <img
-                        className="rounded-circle"
-                        src={userAvatar}
-                        alt=""
-                        style={{ width: "40px", height: "40px" }}
-                      />
-                      <div className="ms-2">
-                        <h6 className="mb-0">{item.name}</h6>
-                        <small>{item.email}</small>
-                        <p>{item.messages?.at(-1)}</p>
-                        <p>
-                          {new Date(item.updatedAt).toLocaleString("en-BD", {
-                            timeZone: "Asia/Dhaka",
-                          })}
+                  <li className="dropdown-item messageDropdownItem">
+                    <div className=" ">
+                      <div className="d-flex justify-content-between">
+                        <img
+                          className="rounded-circle"
+                          src={userAvatar}
+                          alt="User"
+                          style={{ width: "40px", height: "40px" }}
+                        />
+                        <p className="dateMessagesP">
+                          {new Date(item.updatedAt).toLocaleDateString(
+                            "en-BD",
+                            {
+                              day: "numeric",
+                              month: "short",
+                            }
+                          )}
                         </p>
                       </div>
+                      <div className="ms-2 mt-1">
+                        <div className="messagesAndDate  ">
+                          <h6>{item.email}</h6>
+                        </div>
+
+                        <p className="PMessages">{item.messages?.at(-1)}</p>
+                      </div>
                     </div>
-                  </a>
+                  </li>
                   {index < 2 && <hr className="dropdown-divider" />}
                 </React.Fragment>
               ))
             ) : (
-              <p className="dropdown-item text-center">No messages</p>
+              <li className="dropdown-item text-center">No messages</li>
             )}
-            <Link to="/messages" className="dropdown-item text-center">
-              See all messages
-            </Link>
-          </div>
+            <li>
+              <Link
+                to="/dashboard/messages"
+                className="dropdown-item text-center"
+              >
+                See all messages
+              </Link>
+            </li>
+          </ul>
         </div>
 
-        {/* Notifications Dropdown */}
         <div className="nav-item dropdown">
           <a
             href="#"
             className="nav-link dropdown-toggle"
+            id="profileDropdown"
+            role="button"
             data-bs-toggle="dropdown"
-          >
-            <i className="fa fa-bell me-lg-2"></i>
-            <span className="d-none d-lg-inline-flex">Notification</span>
-          </a>
-          <div className="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-            {["Profile updated", "New user added", "Password changed"].map(
-              (text, index) => (
-                <React.Fragment key={index}>
-                  <a href="#" className="dropdown-item">
-                    <h6 className="fw-normal mb-0">{text}</h6>
-                    <small>15 minutes ago</small>
-                  </a>
-                  {index < 2 && <hr className="dropdown-divider" />}
-                </React.Fragment>
-              )
-            )}
-            <a href="#" className="dropdown-item text-center">
-              See all notifications
-            </a>
-          </div>
-        </div>
-
-        {/* Admin Profile Dropdown */}
-        <div className="nav-item dropdown">
-          <a
-            href="#"
-            className="nav-link dropdown-toggle"
-            data-bs-toggle="dropdown"
+            aria-expanded="false"
           >
             <img
               className="rounded-circle me-lg-2"
               src={userAvatar}
-              alt=""
+              alt="User"
               style={{ width: "40px", height: "40px" }}
             />
-            <span className="d-none d-lg-inline-flex">
-              {adminName || "Admin"}
-            </span>
+            <span className="d-none d-lg-inline-flex">{adminName}</span>
           </a>
-          <div className="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-            <a href="#" className="dropdown-item">
-              My Profile
-            </a>
-            <a href="#" className="dropdown-item">
-              Settings
-            </a>
-            <a href="#" className="dropdown-item" onClick={handleLogout}>
-              Log Out
-            </a>
-          </div>
+          <ul
+            className="dropdown-menu dropdown-menu-end"
+            aria-labelledby="profileDropdown"
+          >
+            <li>
+              <a href="#" className="dropdown-item">
+                My Profile
+              </a>
+            </li>
+            <li>
+              <a href="#" className="dropdown-item">
+                Settings
+              </a>
+            </li>
+            <li>
+              <a href="#" className="dropdown-item" onClick={handleLogout}>
+                Log Out
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
