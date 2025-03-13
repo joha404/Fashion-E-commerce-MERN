@@ -1,25 +1,45 @@
 const SSLCommerzPayment = require("sslcommerz-lts");
-const orderSchema = require("../models/orderSchema");
+const Order = require("../models/orderSchema");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const store_id = process.env.STORE_ID;
 const store_passwd = process.env.STORE_PASSWORD;
 const is_live = false; // Change to true in production
 
+// 🛒 Process Checkout
 const processCheckout = async (req, res) => {
   try {
-    const { user, cart, totalAmount } = req.body;
-    const { name, email, phone, address, postCode } = user || {};
-
-    if (!user || !cart || !totalAmount) {
-      return res.status(400).json({ message: "Missing required fields" });
+    const { cart, totalAmount, userInfo } = req.body;
+    console.log(userInfo);
+    // Validation: Check if user data is present
+    if (
+      !userInfo.id ||
+      !userInfo.name ||
+      !userInfo.email ||
+      !userInfo.phone ||
+      !userInfo.address ||
+      !userInfo.postCode
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing required fields in user data" });
     }
 
-    if (!Array.isArray(cart)) {
-      return res.status(400).json({ message: "Cart should be an array" });
+    // Validation: Check if cart is an array and totalAmount is a valid number
+    if (!Array.isArray(cart) || cart.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Cart should be a non-empty array" });
     }
+    if (isNaN(totalAmount)) {
+      return res.status(400).json({ message: "Invalid total amount" });
+    }
+
+    // Extract user details
+    const { name, email, phone, address, postCode } = user;
 
     const tran_id = `REF${Date.now()}`;
-
     const data = {
       total_amount: totalAmount,
       currency: "BDT",
@@ -49,35 +69,49 @@ const processCheckout = async (req, res) => {
       ship_country: "Bangladesh",
     };
 
-    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+    const sslcz = new SSLCommerzPayment(
+      process.env.SSL_STORE_ID,
+      process.env.SSL_STORE_PASSWD,
+      process.env.SSL_IS_LIVE === "true"
+    );
+
     const apiResponse = await sslcz.init(data);
 
     if (apiResponse?.GatewayPageURL) {
       res.json({ url: apiResponse.GatewayPageURL });
 
-      // Store order in DB with default status "Pending"
-      await orderSchema.create({
-        user,
+      // Save order to the database
+      await Order.create({
+        user: {
+          name,
+          email,
+          phone,
+          address,
+          postCode,
+        },
+        userInfo: userInfo ? new mongoose.Types.ObjectId(userInfo) : null,
         cart,
         totalAmount,
         paidStatus: false,
         tranjectionId: tran_id,
-        status: "Pending", // FIX: Added status field
+        status: "Pending",
       });
     } else {
       res.status(500).json({ message: "Error initializing payment gateway" });
     }
   } catch (error) {
     console.error("Error in processing checkout: ", error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
+// 📦 Get All Orders
 const getOrder = async (req, res) => {
   try {
-    const allOrders = await orderSchema.find().lean(); // FIX: Added await & lean()
+    const allOrders = await Order.find().populate("userInfo").lean();
     res.status(200).json(allOrders);
   } catch (error) {
     console.error("Error fetching orders: ", error);
@@ -86,11 +120,30 @@ const getOrder = async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 };
+
+// 🔄 Update Order Status
 const statusUpdate = async (req, res) => {
-  const orderId = req.params.id;
-  const { status } = req.body;
-  await orderSchema.findByIdAndUpdate(orderId, { status });
-  res.json({ message: "Order updated" });
+  try {
+    const orderId = req.params.id;
+    const { status } = req.body;
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({ message: "Order updated", order: updatedOrder });
+  } catch (error) {
+    console.error("Error updating order status: ", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
 };
 
 module.exports = { processCheckout, getOrder, statusUpdate };

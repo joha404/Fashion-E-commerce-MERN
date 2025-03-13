@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Checkout.css";
 import axios from "axios";
-import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
-import { FaTrashAlt } from "react-icons/fa";
 
 export default function Checkout() {
-  // State to store form values
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,15 +11,14 @@ export default function Checkout() {
     address: "",
     postCode: "",
   });
-  const [cart, setCart] = useState({ items: [] }); // ✅ Default empty array
+
+  const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [decodedToken, setDecodedToken] = useState(null);
   const [promoCode, setPromoCode] = useState("");
   const [isPromoValid, setIsPromoValid] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const formRef = useRef(null);
 
-  // Fetch cart data and user token on component mount
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -34,74 +30,81 @@ export default function Checkout() {
         }
 
         const decodedToken = jwtDecode(token);
-        setDecodedToken(decodedToken);
-        const userId = decodedToken.userId;
+        const userId = decodedToken?.userId;
         if (!userId) {
           console.error("User ID not found in token");
           setLoading(false);
           return;
         }
 
+        setFormData({
+          name: decodedToken.name || "",
+          email: decodedToken.email || "",
+          phone: decodedToken.phone || "",
+          address: "",
+          postCode: "",
+        });
+
         const response = await axios.get(
           `http://localhost:3000/cart/${userId}`
         );
-        console.log("Cart Response:", response.data);
-
-        // ✅ Ensure cart is always set properly
         setCart(response.data.cart || { items: [] });
       } catch (error) {
         console.error("Error fetching cart:", error);
-        setCart({ items: [] }); // ✅ Avoid undefined cart
+        setCart({ items: [] });
       } finally {
         setLoading(false);
       }
     };
 
     fetchCart();
-
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Initial check for mobile view
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
   }, []);
 
-  // Ref for the form
-  const formRef = useRef(null);
-
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle promo code change
   const handlePromoChange = (e) => {
     setPromoCode(e.target.value);
   };
 
-  // Validate promo code
   const validatePromoCode = () => {
     if (promoCode === "hello" || promoCode === "joha") {
       setIsPromoValid(true);
-      setDiscount(0.15); // 15% discount
+      setDiscount(0.15);
     } else {
       setIsPromoValid(false);
-      setDiscount(0); // No discount
+      setDiscount(0);
     }
   };
 
-  // Handle form submission
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare the order details
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found.");
+      return;
+    }
+
+    const decodedToken = jwtDecode(token);
+    const userId = decodedToken.userId;
+    if (!userId) {
+      console.error("User ID not found in token.");
+      return;
+    }
+
+    const tran_id = `REF${Date.now()}`;
+
     const orderDetails = {
-      user: formData,
+      userInfo: {
+        id: userId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        postCode: formData.postCode,
+      },
       cart: cart.items.map((item) => ({
         product: item.productId.name,
         quantity: item.quantity,
@@ -109,47 +112,50 @@ export default function Checkout() {
         total: (item.productId.price * item.quantity).toFixed(2),
       })),
       totalAmount: calculateTotal().toFixed(2),
+      tranjectionId: tran_id,
     };
 
     try {
       const response = await axios.post(
         "http://localhost:3000/checkout",
         orderDetails,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-      console.log("response ", response);
+      console.log("Response Data:", response.data);
+
       if (response?.data?.url) {
         window.location.href = response.data.url;
       } else {
         console.log("No URL returned from server");
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error submitting order:", error);
+      // Log error details
+      console.error("Error response:", error.response);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
     }
   };
 
-  // Handle button click to submit form
   const handleButtonClick = () => {
     if (formRef.current) {
-      formRef.current.requestSubmit(); // Trigger form submission
+      formRef.current.requestSubmit();
     }
   };
 
-  // Calculate total price from cart items
   const calculateTotal = () => {
     const total = cart.items.reduce(
       (total, item) => total + item.productId.price * item.quantity,
       0
     );
-    return total - total * discount; // Apply discount if valid
+    return total - total * discount;
   };
 
   return (
     <div className="checkout-container mt-5">
       <div className="checkout-row mx-4">
-        {/* Billing Details */}
         <div className="billing-details">
           <div className="checkout-card">
             <div className="checkout-header billing-header">
@@ -179,7 +185,6 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Order Summary */}
         <div className="order-summary mx-3">
           <div className="checkout-card">
             <div className="checkout-header summary-header">
@@ -188,34 +193,29 @@ export default function Checkout() {
             <div className="checkout-body mt-4">
               <ul className="summary-list">
                 {cart?.items?.length > 0 ? (
-                  <>
-                    {cart.items.map((item, index) => (
-                      <React.Fragment key={index}>
-                        <li className="summary-item">
-                          <strong>Product:</strong> {item.productId.name}
-                        </li>
-                        <li className="summary-item">
-                          <strong>Quantity:</strong> {item.quantity}
-                        </li>
-                        <li className="summary-item">
-                          <strong>Price:</strong> $
-                          {item.productId.price.toFixed(2)}
-                        </li>
-                        <li className="divider"></li>{" "}
-                        {/* Optional divider for spacing */}
-                      </React.Fragment>
-                    ))}
-                  </>
+                  cart.items.map((item, index) => (
+                    <React.Fragment key={index}>
+                      <li className="summary-item">
+                        <strong>Product:</strong> {item.productId.name}
+                      </li>
+                      <li className="summary-item">
+                        <strong>Quantity:</strong> {item.quantity}
+                      </li>
+                      <li className="summary-item">
+                        <strong>Price:</strong> $
+                        {item.productId.price.toFixed(2)}
+                      </li>
+                      <li className="divider"></li>
+                    </React.Fragment>
+                  ))
                 ) : (
                   <li>No items in the cart</li>
                 )}
 
-                {/* Shipping Row */}
                 <li className="summary-item">
                   <strong>Shipping:</strong> Free
                 </li>
 
-                {/* Total Price Row */}
                 <li className="summary-item total">
                   <strong>Total:</strong> ${calculateTotal().toFixed(2)}
                 </li>

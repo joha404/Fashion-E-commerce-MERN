@@ -6,21 +6,19 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 const DBConnect = require("./config/db");
-const SSLCommerzPayment = require("sslcommerz-lts");
-const orderSchema = require("./models/orderSchema");
-const adminRoute = require("./routes/adminRoute");
+const Order = require("./models/orderSchema"); // Ensure this is the correct path to your Order model
 
 const cors = require("cors");
 
 const allowedOrigins = [
-  "http://localhost:5173", // Add your frontend URL
+  "http://localhost:5173",
   "http://localhost:5174",
-  "https://your-production-domain.com", // Add your live frontend domain if applicable
+  "https://your-production-domain.com",
 ];
 
 app.use(
   cors({
-    origin: true, // Temporarily allow all origins for testing
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -53,25 +51,23 @@ app.use("/product", require("./routes/productRoute"));
 app.use("/cart", require("./routes/cartRoute"));
 app.use("/wishlist", require("./routes/wishlistRoute"));
 app.use("/", require("./routes/messageRoute"));
-app.use("/checkout", require("./routes/checkoutRoute"));
 
-// Checkout Route
-const orderController = require("./controllers/checkoutController");
-app.post("/checkout", orderController.processCheckout);
+// Use checkout routes
+app.use("/checkout", require("./routes/checkoutRoute"));
 
 // Payment Success Route
 app.post("/success/:tran_id", async (req, res) => {
   const { tran_id } = req.params;
 
   try {
-    const order = await orderSchema.findOne({ tranjectionId: tran_id });
+    const order = await Order.findOne({ tranjectionId: tran_id });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Update order's paid status
-    const updateResult = await orderSchema.updateOne(
+    const updateResult = await Order.updateOne(
       { tranjectionId: tran_id },
       { $set: { paidStatus: true } }
     );

@@ -9,6 +9,10 @@ const orderSchema = new mongoose.Schema(
       address: { type: String },
       postCode: { type: String },
     },
+    userInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
     cart: [
       {
         product: { type: String },
