@@ -114,3 +114,7 @@ create admin = http://localhost:3000/admin/create
 method = post
 login admin = http://localhost:3000/admin/login
 method = post
+
+
+create complete order = http://localhost:3000/complete/:orderId
+mehod = post

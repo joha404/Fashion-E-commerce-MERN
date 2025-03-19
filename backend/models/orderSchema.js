@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema(
     },
     userInfo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "user", // Change 'user' to 'User'
     },
     cart: [
       {
@@ -33,4 +33,4 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("order", orderSchema);
+module.exports = mongoose.model("order", orderSchema); // Ensure the model name is 'Order' here as well

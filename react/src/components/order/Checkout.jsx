@@ -99,6 +99,8 @@ export default function Checkout() {
     const orderDetails = {
       userInfo: {
         id: userId,
+      },
+      user: {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -121,7 +123,6 @@ export default function Checkout() {
         orderDetails,
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("Response Data:", response.data);
 
       if (response?.data?.url) {
         window.location.href = response.data.url;

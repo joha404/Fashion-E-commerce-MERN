@@ -54,6 +54,7 @@ app.use("/", require("./routes/messageRoute"));
 
 // Use checkout routes
 app.use("/checkout", require("./routes/checkoutRoute"));
+app.use("/complete", require("./routes/CompleteOrderRoute"));
 
 // Payment Success Route
 app.post("/success/:tran_id", async (req, res) => {

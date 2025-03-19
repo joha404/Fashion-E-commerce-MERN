@@ -5,28 +5,28 @@ require("dotenv").config();
 
 const store_id = process.env.STORE_ID;
 const store_passwd = process.env.STORE_PASSWORD;
-const is_live = false; // Change to true in production
+const is_live = process.env.SSL_IS_LIVE === "true"; // Convert to boolean
 
 // 🛒 Process Checkout
 const processCheckout = async (req, res) => {
   try {
-    const { cart, totalAmount, userInfo } = req.body;
-    console.log(userInfo);
-    // Validation: Check if user data is present
+    const { user, cart, totalAmount, userInfo } = req.body;
+
+    // Validate user data
     if (
-      !userInfo.id ||
-      !userInfo.name ||
-      !userInfo.email ||
-      !userInfo.phone ||
-      !userInfo.address ||
-      !userInfo.postCode
+      !user ||
+      !user.name ||
+      !user.email ||
+      !user.phone ||
+      !user.address ||
+      !user.postCode
     ) {
       return res
         .status(400)
         .json({ message: "Missing required fields in user data" });
     }
 
-    // Validation: Check if cart is an array and totalAmount is a valid number
+    // Validate cart and totalAmount
     if (!Array.isArray(cart) || cart.length === 0) {
       return res
         .status(400)
@@ -36,10 +36,19 @@ const processCheckout = async (req, res) => {
       return res.status(400).json({ message: "Invalid total amount" });
     }
 
+    // Ensure userInfo is a valid ObjectId
+    if (
+      !userInfo ||
+      !userInfo.id ||
+      !mongoose.Types.ObjectId.isValid(userInfo.id)
+    ) {
+      return res.status(400).json({ message: "Invalid userInfo ID" });
+    }
+
     // Extract user details
     const { name, email, phone, address, postCode } = user;
-
     const tran_id = `REF${Date.now()}`;
+
     const data = {
       total_amount: totalAmount,
       currency: "BDT",
@@ -69,42 +78,34 @@ const processCheckout = async (req, res) => {
       ship_country: "Bangladesh",
     };
 
-    const sslcz = new SSLCommerzPayment(
-      process.env.SSL_STORE_ID,
-      process.env.SSL_STORE_PASSWD,
-      process.env.SSL_IS_LIVE === "true"
-    );
-
+    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
     const apiResponse = await sslcz.init(data);
 
     if (apiResponse?.GatewayPageURL) {
       res.json({ url: apiResponse.GatewayPageURL });
 
-      // Save order to the database
-      await Order.create({
-        user: {
-          name,
-          email,
-          phone,
-          address,
-          postCode,
-        },
-        userInfo: userInfo ? new mongoose.Types.ObjectId(userInfo) : null,
-        cart,
-        totalAmount,
-        paidStatus: false,
-        tranjectionId: tran_id,
-        status: "Pending",
-      });
+      // Save order in database
+      try {
+        const createOrder = await Order.create({
+          user: { name, email, phone, address, postCode },
+          userInfo: new mongoose.Types.ObjectId(userInfo.id),
+          cart,
+          totalAmount,
+          paidStatus: false,
+          tranjectionId: tran_id,
+          status: "Pending",
+        });
+      } catch (orderError) {
+        console.error("Order creation failed:", orderError);
+      }
     } else {
       res.status(500).json({ message: "Error initializing payment gateway" });
     }
   } catch (error) {
     console.error("Error in processing checkout: ", error);
-    res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
@@ -121,29 +122,114 @@ const getOrder = async (req, res) => {
   }
 };
 
+const getUserOrder = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid or missing user ID" });
+    }
+
+    const orders = await Order.find({ userInfo: userId })
+      .populate("userInfo")
+      .lean();
+
+    if (!orders.length) {
+      return res.status(404).json({ message: "No orders found" });
+    }
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+// const deleteUserOrders = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+
+//     // Validate user ID
+//     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Invalid or missing user ID" });
+//     }
+
+//     // Delete orders linked to the user
+//     const deletedOrders = await Order.deleteMany({ userInfo: userId });
+
+//     if (deletedOrders.deletedCount === 0) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "No orders found for this user" });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "All orders for this user have been deleted successfully",
+//       deletedCount: deletedOrders.deletedCount,
+//     });
+//   } catch (error) {
+//     console.error("Error deleting user orders:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error",
+//       error: error.message,
+//     });
+//   }
+// };
+
 // 🔄 Update Order Status
 const statusUpdate = async (req, res) => {
   try {
     const orderId = req.params.id;
     const { status } = req.body;
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: "Invalid order ID" });
+    }
 
-    if (!updatedOrder) {
+    const order = await Order.findById(orderId);
+    if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    res.json({ message: "Order updated", order: updatedOrder });
+    order.status = status;
+    await order.save();
+
+    res.json({ message: "Order updated", order });
   } catch (error) {
-    console.error("Error updating order status: ", error);
+    console.error("Error updating order status:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 };
+const deleteOrder = async (req, res) => {
+  const { id } = req.params;
 
-module.exports = { processCheckout, getOrder, statusUpdate };
+  try {
+    const deleteOrderFinish = await Order.findByIdAndDelete(id);
+    return res.status(201).json({
+      success: true,
+      message: "Order completed successfully",
+      data: deleteOrderFinish,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+module.exports = {
+  processCheckout,
+  getOrder,
+  getUserOrder,
+  statusUpdate,
+  deleteOrder,
+};

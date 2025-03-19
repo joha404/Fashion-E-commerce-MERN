@@ -37,3 +37,76 @@
   font-weight: 600;
   margin-bottom: 7px;
 }
+
+.status-approved {
+  color: #2c5f2d;
+}
+
+.status-pending {
+  color: #007bff;
+}
+
+.status-rejected {
+  color: #cc313d;
+}
+
+.status-default {
+  background-color: #6c757d;
+  color: white;
+}
+.profile-sidebar {
+  padding: 15px;
+  border-right: 1px solid #ddd;
+}
+
+.profile-content {
+  padding: 20px;
+}
+
+/* Make the table responsive */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table tbody tr {
+  height: 60px;
+}
+.table td,
+.table th {
+  padding: 26px;
+}
+.orderParagraph {
+  font-size: 16px;
+  text-align: left;
+}
+@media (max-width: 767px) {
+  .profile-sidebar {
+    margin-bottom: 20px;
+  }
+  .orderParagraph {
+    font-size: 14px;
+    text-align: center;
+  }
+  .profile-userpic {
+    text-align: center;
+  }
+}
+.table-responsive {
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
+  overflow-x: auto;
+}
+
+/* Optional: Adjust text size on small screens */
+@media (max-width: 767px) {
+  .table th,
+  .table td {
+    font-size: 12px; /* Smaller font size for better fit */
+  }
+  .table tbody tr {
+    height: 60px;
+  }
+  .table td,
+  .table th {
+    padding: 5px;
+  }
+}
