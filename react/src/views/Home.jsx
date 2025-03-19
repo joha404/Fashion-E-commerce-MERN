@@ -6,7 +6,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import FeatureProduct from "../components/products/FeatureProduct";
 import Collection from "../components/collection/Collection";
-import DiscountCupon from "../components/discountCupon";
+import DiscountCupon from "../components/DiscountCupon";
 import BestSelling from "../components/products/BestSelling";
 import Testmoniral from "../components/Testmoniral";
 import NewArrival from "../components/products/NewArrival";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom"; // Import the useNavigate hook
-import "./Login.css"; // Import CSS for styling
+import "./login.css"; // Import CSS for styling
 
 const Login = () => {
   const [formData, setFormData] = useState({

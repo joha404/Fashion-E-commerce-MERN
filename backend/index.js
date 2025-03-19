@@ -13,7 +13,7 @@ const cors = require("cors");
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://your-production-domain.com",
+  "https://mern-ecommerce-front-pi.vercel.app",
 ];
 
 app.use(
@@ -26,7 +26,16 @@ app.use(
 );
 
 // Connect to the database
-DBConnect();
+
+export default async function handler(req, res) {
+  try {
+    await DBConnect();
+    res.status(200).json({ message: "API working!" });
+  } catch (error) {
+    console.error("API Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 
 // Middleware
 app.use(bodyParser.json());
